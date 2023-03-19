@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Hangman Game</title>
+    <style>
+      canvas {
+        border: 1px solid black;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Hangman Game</h1>
+    <canvas id="canvas" width="600" height="450"></canvas>
+
+    <script>
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      let gameStarted = false;
+
+      const words = [
+        { word: 'apple', tip: 'A fruit' },
+        { word: 'banana', tip: 'A yellow fruit' },
+        { word: 'cherry', tip: 'A small red fruit' },
+        { word: 'dragonfruit', tip: 'A tropical fruit with a scaly exterior' },
+        { word: 'elderberry', tip: 'A dark purple fruit commonly used in jams and pies' },
+        { word: 'fig', tip: 'A small pear-shaped fruit with a sweet flesh' },
+        { word: 'grape', tip: 'A small juicy fruit that comes in bunches' },
+        { word: 'honeydew', tip: 'A type of melon with a green rind and sweet flesh' },
+        { word: 'kiwi', tip: 'A small fruit with fuzzy brown skin and bright green flesh' },
+        { word: 'lemon', tip: 'A sour yellow fruit often used in cooking' },
+        { word: 'mango', tip: 'A sweet tropical fruit with a yellow-orange flesh' },
+        { word: 'nectarine', tip: 'A type of peach with a smooth skin' },
+        { word: 'orange', tip: 'A round fruit with a thick orange rind and juicy flesh' },
+        { word: 'peach', tip: 'A soft juicy fruit with a fuzzy skin' },
+        { word: 'pear', tip: 'A sweet juicy fruit with a rounded shape and a narrow top' },
+        { word: 'pineapple', tip: 'A tropical fruit with a tough spiky exterior and sweet juicy flesh' },
+        { word: 'quince', tip: 'A fragrant fruit similar to a pear but with a harder flesh' },
+        { word: 'raspberry', tip: 'A small red fruit with a tart taste' },
+        { word: 'strawberry', tip: 'A small red fruit with tiny seeds on the outside' },
+        { word: 'watermelon', tip: 'A large juicy fruit with a hard green rind and sweet red flesh' }
+      ];
+      let { word, tip } = words[Math.floor(Math.random() * words.length)];
+      word = word.toLowerCase();
+
+      let guessedLetters = new Set();
+      let wrongGuesses = 0;
+
+      function drawHangman() {
+        ctx.beginPath();
+        ctx.moveTo(100, 300);
+        ctx.lineTo(200, 300);
+        ctx.lineTo(150, 250);
+        ctx.closePath();
+        ctx.stroke();
+
+        if (wrongGuesses >= 1) {
+          ctx.beginPath();
+          ctx.moveTo(150, 250);
+          ctx.lineTo(150, 50);
+          ctx.stroke();
+        }
+
+        if (wrongGuesses >= 2) {
+          ctx.beginPath();
+          ctx.moveTo(150, 50);
+          ctx.lineTo(250, 50);
+          ctx.stroke();
+        }
+
+        if (wrongGuesses >= 3) {
+          ctx.beginPath();
+          ctx.moveTo(250, 50);
+          ctx.lineTo(250, 75);
+          ctx.stroke();
+        }
+
+        if (wrongGuesses >= 4) {
+          ctx.beginPath();
+          ctx.arc(250, 100, 25, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        if (wrongGuesses >= 5) {
+          ctx.beginPath();
+          ctx.moveTo(250, 125);
+          ctx.lineTo(250, 200);
+          ctx.stroke();
+        }
+
+        if (wrongGuesses >= 6) {
+          ctx.beginPath();
+          ctx.moveTo(250, 150);
+          ctx.lineTo(225, 125);
+          ctx.stroke();
+        }
+
+        if (wrongGuesses >= 7) {
+          ctx.beginPath();
+          ctx.moveTo(250, 150);
+          ctx.lineTo(275, 125);
+          ctx.stroke();
+        }
+
+        if (wrongGuesses >= 8) {
+          ctx.beginPath();
+          ctx.moveTo(250, 200);
+          ctx.lineTo(225, 225);
+          ctx.stroke();
+        }
+
+        if (wrongGuesses >= 9) {
+          ctx.beginPath();
+          ctx.moveTo(250, 200);
+          ctx.lineTo(275, 225);
+          ctx.stroke();
+        }
+      }
+
+      function drawWord() {
+        let displayWord = '';
+        for (const letter of word) {
+          if (guessedLetters.has(letter)) {
+            displayWord += letter;
+          } else {
+            displayWord += '_';
+          }
+          displayWord += ' ';
+        }
+        ctx.font = '24px Arial';
+        ctx.fillText(displayWord, 100, 375);
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawHangman();
+        drawWord();
+        ctx.font = '14px Arial';
+        ctx.fillText(`Tip: ${tip}`, 10, 30);
+        ctx.fillText('Wrong letters:', 10, 415);
+        ctx.fillText([...guessedLetters].filter(letter => !word.includes(letter)).join(', '), 100, 415);
+      }
+
+      function handleKeyPress(event) {
+        const letter = event.key.toLowerCase();
+        if (/^[a-zç]$/.test(letter) && !guessedLetters.has(letter)) {
+          guessedLetters.add(letter);
+          if (word.includes(letter)) {
+            draw();
+          } else {
+            wrongGuesses++;
+            draw();
+          }
+        }
+      }
+
+      function isGameOver() {
+        return wrongGuesses >= 9 || [...new Set(word)].every(letter => guessedLetters.has(letter));
+      }
+
+      function showGameOverMessage() {
+        let message;
+        if (wrongGuesses >= 9) {
+          message = 'You lost :(';
+          //localStorage.setItem('failures', parseInt(localStorage.getItem('failures') || 0) + 1);
+        } 
+        else {
+          message = 'You won!';
+          //localStorage.setItem('wins', parseInt(localStorage.getItem('wins') || 0) + 1);
+        }
+
+        ctx.font = '48px Arial';
+        ctx.fillText(message, canvas.width / 2 - ctx.measureText(message).width / 2, canvas.height / 2 - 24);
+
+        //const winCount = localStorage.getItem('wins') || 0;
+        //const failureCount = localStorage.getItem('failures') || 0;
+        //const stats = `Wins: ${winCount} Failures: ${failureCount}`;
+        //ctx.font = '24px Arial';
+        //ctx.fillText(stats, canvas.width / 2 - ctx.measureText(stats).width / 2, canvas.height / 2 + 24);
+      }
+
+      draw();
+
+      document.addEventListener('keydown', handleKeyPress);
+
+      setInterval(() => {
+        if (isGameOver()) {
+          document.removeEventListener('keydown', handleKeyPress);
+          showGameOverMessage();
+        }
+      }, 100);
+    </script>
+  </body>
+</html>
